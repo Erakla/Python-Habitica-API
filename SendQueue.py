@@ -1,8 +1,9 @@
+from .Exceptions import ArgumentsNotAcceptedException, BadResponseFormatException
 import requests
 import json
 import time
 import threading
-from .Exceptions import ArgumentsNotAcceptedException, BadResponseFormatException
+import os
 
 class SendQueue:
     def __init__(self, data, header: dict):
@@ -37,6 +38,16 @@ class SendQueue:
                 continue
             self._send(self.queue.pop(0))
 
+    def _refresh_objects(self, version: str):
+        if self.data['objects']['appVersion'] != version:
+            url = 'api/v3/content?language=%s' % self.data['language']
+            self.data['objects'] = self.__call__('get', url, False)
+            self.data['objects']['appVersion'] = version
+
+            objects_file = os.path.join(self.data['savelocation'], 'objects.json')
+            with open(objects_file, 'wt') as file:
+                json.dump(self.data['objects'], file)
+
     def _send(self, msg):
         self.lastrequesttime = time.time()
         if msg['queued']:
@@ -45,6 +56,7 @@ class SendQueue:
                 rdict = {}
                 try:
                     rdict = r.json()
+                    self._refresh_objects(rdict['appVersion'])
                     if msg['callback']:
                         return msg['callback'](success=True, status=r.status_code, data=rdict['data'])
                 except json.JSONDecodeError as ex:
@@ -70,6 +82,7 @@ class SendQueue:
                 if 200 <= r.status_code < 300:
                     try:
                         rdict = r.json()
+                        self._refresh_objects(rdict['appVersion'])
                         return rdict['data']
                     except json.JSONDecodeError as ex:
                         raise BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)

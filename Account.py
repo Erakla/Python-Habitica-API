@@ -12,21 +12,25 @@ import time
 
 class Account:
     def __init__(self, data: dict, user_id: str, api_token: str):
-        self.data = data
+        self.__data = data
         self.user_id = user_id
         self.api_token = api_token
-        x_client = "%s-%s" % (self.data['author_uid'], self.data['application_name'])
-        self.send = SendQueue(self.data, {"x-client": x_client, "x-api-user": user_id, "x-api-key": api_token})
+        x_client = "%s-%s" % (self.__data['author_uid'], self.__data['application_name'])
+        self.send = SendQueue(self.__data, {"x-client": x_client, "x-api-user": user_id, "x-api-key": api_token})
 
     def __delete__(self, instance):
         if self.send.sender.is_alive():
-            if self.data['print_status_info']:
+            if self.__data['print_status_info']:
                 print(len(self.send.queue), "requests pending...")
             self.send.sender.join()
 
     @property
     def profile(self):
-        return Profile(self.data, self.send, self.user_id)
+        return Profile(self.__data, self.send, self.user_id)
+
+    @property
+    def objects(self):
+        return self.__data['objects']
 
     def save_data(self):
         if self.send.sender.is_alive():
@@ -147,22 +151,6 @@ class Account:
                          'api/v3/groups/%s/chat?previousMsg=%s' % (group_id, self.groups[group_id]['chat'][0]['id']),
                          queued,
                          {'message': message}, callback)
-
-    def content_get_all_objects(self, language: str = None, queued: bool = True, callback: object = None):
-        """
-        Get all available content objects\n
-        https://habitica.com/apidoc/#api-Content-ContentGet
-
-        :param language: Language code used for the items' strings. If the authenticated user makes the request, the content will return with the user's configured language.
-                         default: "en"
-                         allowed: "bg", "cs", "da", "de", "en", "en@pirate", "en_GB", "es", "es_419", "fr", "he", "hu", "id", "it", "ja", "nl", "pl", "pt", "pt_BR", "ro", "ru", "sk", "sr", "sv", "uk", "zh", "zh_TW"
-        :param priority: Processed immediately if True, otherwise the instructions to reduce the workload are followed. Set this True if user actions require immediate response
-        :param callback: callback function will only be called if priority is false and the msg placed in the queue. it will be called with all keys contained in response.text if it is json serializable, otherwise with the value of response.text itself
-        """
-        url = 'api/v3/content'
-        if language:
-            url += '?language=%s' % language
-        return self.send('get', url, queued, callback)
 
     def coupons_generate(self, event: str, count: int, queued: bool = True, callback: object = None):
         return self.send('post', 'api/v3/coupons/generate/%s?count=%d' % (event, count), queued, callback)
