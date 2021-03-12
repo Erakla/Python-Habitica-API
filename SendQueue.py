@@ -42,19 +42,19 @@ class SendQueue:
         if msg['queued']:
             r = requests.request(msg['method'], url=self.base_url + msg['url'], json=msg['data'], headers=self.header)
             if 200 <= r.status_code < 300:
-                rjson = {}
+                rdict = {}
                 try:
-                    rjson = json.loads(r.json())
+                    rdict = r.json()
                     if msg['callback']:
-                        return msg['callback'](success=True, status=r.status_code, data=rjson['data'])
+                        return msg['callback'](success=True, status=r.status_code, data=rdict['data'])
                 except json.JSONDecodeError as ex:
                     if msg['callback']:
-                        msg['callback'](success=False, status=r.status_code, response=r)
+                        msg['callback'](success=False, status=r.status_code, response=r, exception=ex)
                     else:
                         self.errorlog.append((msg, r))
                 except KeyError as ex:
                     if msg['callback']:
-                        msg['callback'](success=False, status=r.status_code, data=rjson, response=r)
+                        msg['callback'](success=False, status=r.status_code, data=rdict, response=r, exception=ex)
                     else:
                         self.errorlog.append((msg, r))
             if r.status_code == 429:  # too many requests (http://habitica.fandom.com/wiki/Guidance_for_Comrades)
@@ -66,11 +66,11 @@ class SendQueue:
                     self.errorlog.append((msg, r))
         else:
             while True:
-                r = requests.request(msg['method'], url=self.base_url+msg['url'], data=msg['data'], headers=self.header)
+                r = requests.request(msg['method'], url=self.base_url+msg['url'], json=msg['data'], headers=self.header)
                 if 200 <= r.status_code < 300:
                     try:
-                        rjson = json.loads(r.json())
-                        return rjson['data']
+                        rdict = r.json()
+                        return rdict['data']
                     except json.JSONDecodeError as ex:
                         raise BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)
                     except KeyError as ex:
@@ -83,7 +83,7 @@ class SendQueue:
                     continue
                 else:
                     try:
-                        rjson = json.loads(r.json())
-                        raise ArgumentsNotAcceptedException(rjson['error'], rjson['message'], msg['callback'], r)
+                        rdict = r.json()
+                        raise ArgumentsNotAcceptedException(msg['callback'], msg['method'], msg['data'], rdict, r)
                     except json.decoder.JSONDecodeError as ex:
                         raise BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)

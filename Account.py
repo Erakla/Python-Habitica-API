@@ -18,14 +18,15 @@ class Account:
         x_client = "%s-%s" % (self.data['author_uid'], self.data['application_name'])
         self.send = SendQueue(self.data, {"x-client": x_client, "x-api-user": user_id, "x-api-key": api_token})
 
-    def __del__(self):
-        print(len(self.send.queue), "requests pending...")
-        self.send.sender.join()
+    def __delete__(self, instance):
+        if self.send.sender.is_alive():
+            if self.data['print_status_info']:
+                print(len(self.send.queue), "requests pending...")
+            self.send.sender.join()
 
-    def __getattr__(self, item):
-        return {
-            'profile': Profile(self.data, self.send, self.user_id)
-        }.get(item)
+    @property
+    def profile(self):
+        return Profile(self.data, self.send, self.user_id)
 
     def save_data(self):
         if self.send.sender.is_alive():
