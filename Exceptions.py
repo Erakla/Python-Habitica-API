@@ -5,6 +5,7 @@ class ArgumentsNotAcceptedException(BaseException):
         self.used_method = used_method
         self.callback = callback
         self.response = response
+        self.message = rsp_dict['message']
 
     def __str__(self):
         return "%s: %s" % (self.rsp_dict['error'], self.rsp_dict['message'])
@@ -25,3 +26,10 @@ class BadResponseFormatException(BaseException):
 
     def __call__(self, *args, **kwargs):
         return self.callback(False, *args, **kwargs)
+
+class InvalidIDException(ArgumentsNotAcceptedException):
+    def __init__(self, ex: ArgumentsNotAcceptedException, type_: str, id: str):
+        self.id = id
+        self.type = type_
+        self.super = ex
+        self.message = 'invalid id of type %s' % type_

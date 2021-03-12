@@ -1,5 +1,6 @@
 from .SendQueue import SendQueue
 from .Profile import Profile
+from .Group import Group
 import time
 
 
@@ -30,7 +31,13 @@ class Account:
 
     @property
     def objects(self):
+        if self.__data['objects']['appVersion'] == '':
+            self.send.refresh_objects('')
         return self.__data['objects']
+
+    @property
+    def party(self):
+        return Group(self.__data, self.send, self.profile['party']['_id'])
 
     def save_data(self):
         if self.send.sender.is_alive():

@@ -38,12 +38,21 @@ class SendQueue:
                 continue
             self._send(self.queue.pop(0))
 
-    def _refresh_objects(self, version: str):
-        if self.data['objects']['appVersion'] != version:
+    def refresh_objects(self, version: str):
+        if not version or self.data['objects']['appVersion'] != version:
             url = 'api/v3/content?language=%s' % self.data['language']
-            self.data['objects'] = self.__call__('get', url, False)
+            if version == '':
+                self.data['objects']['appVersion'] = 'pass'
+                objects = self.__call__('get', url, False)
+                version = self.data['objects']['appVersion']
+                self.data['objects'] = objects
+            elif self.data['objects']['appVersion'] == 'pass':
+                self.data['objects']['appVersion'] = version
+                return
+            else:
+                self.data['objects']['appVersion'] = version
+                self.data['objects'] = self.__call__('get', url, False)
             self.data['objects']['appVersion'] = version
-
             objects_file = os.path.join(self.data['savelocation'], 'objects.json')
             with open(objects_file, 'wt') as file:
                 json.dump(self.data['objects'], file)
@@ -56,7 +65,7 @@ class SendQueue:
                 rdict = {}
                 try:
                     rdict = r.json()
-                    self._refresh_objects(rdict['appVersion'])
+                    self.refresh_objects(rdict['appVersion'])
                     if msg['callback']:
                         return msg['callback'](success=True, status=r.status_code, data=rdict['data'])
                 except json.JSONDecodeError as ex:
@@ -82,7 +91,7 @@ class SendQueue:
                 if 200 <= r.status_code < 300:
                     try:
                         rdict = r.json()
-                        self._refresh_objects(rdict['appVersion'])
+                        self.refresh_objects(rdict['appVersion'])
                         return rdict['data']
                     except json.JSONDecodeError as ex:
                         raise BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)

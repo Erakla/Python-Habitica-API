@@ -1,4 +1,5 @@
 from .SendQueue import SendQueue
+from .Exceptions import ArgumentsNotAcceptedException, InvalidIDException
 import time
 
 class ProfileList(list):
@@ -21,8 +22,11 @@ class Profile:
     #     return inner
 
     def __getitem__(self, item):
-        if self.__user_id not in self.__data['profiles'] or time.time() - self.__data['profiles'][self.__user_id]['synctime'] > self.__data['cached_duration']:
-            profile = self.__send('get', 'api/v3/members/%s' % self.__user_id, False)
-            profile['synctime'] = time.time()
-            self.__data['profiles'][self.__user_id] = profile
-        return self.__data['profiles'][self.__user_id]
+        try:
+            if self.__user_id not in self.__data['profiles'] or time.time() - self.__data['profiles'][self.__user_id]['synctime'] > self.__data['cached_duration']:
+                profile = self.__send('get', 'api/v3/members/%s' % self.__user_id, False)
+                profile['synctime'] = time.time()
+                self.__data['profiles'][self.__user_id] = profile
+        except ArgumentsNotAcceptedException as ex:
+            raise InvalidIDException(ex, type_='user_id', id=self.__user_id)
+        return self.__data['profiles'][self.__user_id][item]
