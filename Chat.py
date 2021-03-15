@@ -1,13 +1,8 @@
 import HabiticaAPI.SendQueue as SendQueue
 import HabiticaAPI.Exceptions as Exceptions
-import HabiticaAPI.Profile as Profile
-import HabiticaAPI.Chat as Chat
 import time
 
-class GroupList:
-    pass
-
-class Group:
+class Chat:
     def __init__(self, data: dict, send: SendQueue.SendQueue, group_id: str):
         self.__data = data
         self.__send = send
@@ -37,23 +32,11 @@ class Group:
 
     # noinspection PyArgumentList
     @__refresh
-    def __getitem__(self, item):
-        return self.content[item]
-
-    # noinspection PyArgumentList
-    @property
-    @__refresh
-    def content(self):
-        return self.__group
-
-    # noinspection PyArgumentList
-    @property
-    @__refresh
-    def member(self):
-        return Profile.ProfileList(self.__data, self.__send, *list(self.__group['quest']['members'].keys()))
-
-    # noinspection PyArgumentList
-    @property
-    @__refresh
-    def chat(self):
-        return Chat.Chat(self.__data, self.__send, self.__group_id)
+    def send_message(self, message: str, queued: bool = True, callback: object = None):
+        url = 'api/v3/groups/%s/chat'
+        args = self.__group_id
+        data = {'message': message}
+        update = {
+            'chatSingleMsg': self.__group_id
+        }
+        return self.__send('post', url % args, queued, callback, data, update)

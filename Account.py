@@ -7,8 +7,6 @@ import time
 # todo add docstrings
 # todo test functions
 # todo check environment state of habitica (disable development functions)
-# todo own exceptions or exception forwarding? and handling in callback
-# todo implement caching
 
 
 class Account:
@@ -39,18 +37,6 @@ class Account:
     def save_data(self):
         if self.send.sender.is_alive():
             self.send.sender.join()
-
-    @staticmethod
-    def unix_to_timestamp(value: float):
-        # "2021-03-10T23:00:00.000Z"
-        return time.strftime("%%Y-%%m-%%dT%%H:%%M:%06.3fZ" % (value % 60), time.gmtime(value))
-
-    @staticmethod
-    def timestamp_to_unix(timestamp: str):
-        timezonedif = time.mktime(time.gmtime(86400)) - 86400
-        localtimeseconds = time.mktime(time.strptime(timestamp[:-5], "%Y-%m-%dT%H:%M:%S"))
-        ms = float(timestamp[-5:-1])
-        return localtimeseconds + timezonedif + ms
 
     # function implementations
     def challenge_clone(self, challenge_id: str, queued: bool = True, callback: object = None):
@@ -149,12 +135,6 @@ class Account:
 
     def chat_group_all_mark_read(self, group_id: str, queued: bool = True, callback: object = None):
         return self.send('post', 'api/v3/groups/%s/chat/seen' % group_id, queued, callback)
-
-    def chat_group_msg_post(self, group_id: str, message: str, queued: bool = True, callback: object = None):
-        return self.send('post',
-                         'api/v3/groups/%s/chat?previousMsg=%s' % (group_id, self.groups[group_id]['chat'][0]['id']),
-                         queued,
-                         {'message': message}, callback)
 
     def coupons_generate(self, event: str, count: int, queued: bool = True, callback: object = None):
         return self.send('post', 'api/v3/coupons/generate/%s?count=%d' % (event, count), queued, callback)

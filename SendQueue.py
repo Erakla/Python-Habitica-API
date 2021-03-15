@@ -1,4 +1,5 @@
 import HabiticaAPI.Exceptions as Exceptions
+import HabiticaAPI.helper_functions as hf
 import requests
 import json
 import time
@@ -15,13 +16,14 @@ class SendQueue:
         self.lastrequesttime = 0
         self.errorlog = []
 
-    def __call__(self, method: str, url: str, queued: bool = True, callback: object = None, data: dict = None):
+    def __call__(self, method: str, url: str, queued: bool = True, callback: object = None, data: dict = None, update: dict = None):
         msg = {
             'method': method,
             'url': url,
             'callback': callback,
             'queued': queued,
-            'data': data
+            'data': data,
+            'update': update
         }
         if queued:
             self.queue.append(msg)
@@ -66,8 +68,11 @@ class SendQueue:
                 try:
                     rdict = r.json()
                     self.refresh_objects(rdict['appVersion'])
+                    data = rdict['data']
+                    if msg['update']:
+                        self._update(msg['update'], rdict)
                     if msg['callback']:
-                        return msg['callback'](success=True, status=r.status_code, data=rdict['data'])
+                        return msg['callback'](success=True, status=r.status_code, data=data)
                 except json.JSONDecodeError as ex:
                     if msg['callback']:
                         msg['callback'](success=False, status=r.status_code, response=r, exception=ex)
@@ -92,7 +97,10 @@ class SendQueue:
                     try:
                         rdict = r.json()
                         self.refresh_objects(rdict['appVersion'])
-                        return rdict['data']
+                        data = rdict['data']
+                        if msg['update']:
+                            self._update(msg['update'], data)
+                        return data
                     except json.JSONDecodeError as ex:
                         raise Exceptions.BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)
                     except KeyError as ex:
@@ -109,3 +117,17 @@ class SendQueue:
                         raise Exceptions.ArgumentsNotAcceptedException(msg['callback'], msg['method'], msg['data'], rdict, r)
                     except json.decoder.JSONDecodeError as ex:
                         raise Exceptions.BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)
+
+    def _update_chat_single_message(self, group_id, data: dict):
+        message = data['message']
+        message['timestamp'] = hf.timestamp_to_unix(message['timestamp'])
+        chat = self.data['groups'][group_id]['chat']
+        if chat[0]['timestamp'] < message['timestamp']:
+            chat.insert(0, message)
+
+    def _update(self, functions: dict, data: dict):
+        update_functions = {
+            'chatSingleMsg': self._update_chat_single_message
+        }
+        for func in functions:
+            update_functions[func](functions[func], data)

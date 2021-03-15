@@ -45,15 +45,15 @@ class Profile:
             try:
                 # if not assigned
                 if not self.__profile:
-                    # because but existant... assign
+                    # but existant... assign
                     if self.__user_id in self.__data['profiles']:
                         self.__profile = self.__data['profiles'][self.__user_id]
                     else:  # or load and assign
                         self.__data['profiles'][self.__user_id] = self.__send('get', 'api/v3/members/%s' % self.__user_id, False)
                         self.__profile = self.__data['profiles'][self.__user_id]
                         self.__profile['synctime'] = time.time()
-                # if assigned but not topical... load and update
-                elif time.time() - self.__data['profiles'][self.__user_id]['synctime'] > self.__data['cached_duration']:
+                # if not topical... load and update
+                if time.time() - self.__data['profiles'][self.__user_id]['synctime'] > self.__data['cached_duration']:
                     self.__profile.update(self.__send('get', 'api/v3/members/%s' % self.__user_id, False))
                     self.__profile['synctime'] = time.time()
             except Exceptions.ArgumentsNotAcceptedException as ex:
