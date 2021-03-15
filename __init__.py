@@ -1,1 +1,1 @@
-from .Client import Client
+from HabiticaAPI.Client import Client

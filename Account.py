@@ -1,6 +1,6 @@
-from .SendQueue import SendQueue
-from .Profile import Profile
-from .Group import Group
+import HabiticaAPI.SendQueue as SendQueue
+import HabiticaAPI.Profile as Profile
+import HabiticaAPI.Group as Group
 import time
 
 
@@ -17,17 +17,14 @@ class Account:
         self.user_id = user_id
         self.api_token = api_token
         x_client = "%s-%s" % (self.__data['author_uid'], self.__data['application_name'])
-        self.send = SendQueue(self.__data, {"x-client": x_client, "x-api-user": user_id, "x-api-key": api_token})
+        self.send = SendQueue.SendQueue(self.__data, {"x-client": x_client, "x-api-user": user_id, "x-api-key": api_token})
+        self.profile = Profile.Profile(self.__data, self.send, self.user_id)
 
     def __delete__(self, instance):
         if self.send.sender.is_alive():
             if self.__data['print_status_info']:
                 print(len(self.send.queue), "requests pending...")
             self.send.sender.join()
-
-    @property
-    def profile(self):
-        return Profile(self.__data, self.send, self.user_id)
 
     @property
     def objects(self):
@@ -37,7 +34,7 @@ class Account:
 
     @property
     def party(self):
-        return Group(self.__data, self.send, self.profile['party']['_id'])
+        return Group.Group(self.__data, self.send, self.profile['party']['_id'])
 
     def save_data(self):
         if self.send.sender.is_alive():

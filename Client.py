@@ -1,4 +1,4 @@
-from .Account import Account
+import HabiticaAPI.Account as Account
 import json
 import os
 import time
@@ -54,22 +54,22 @@ class Client:
     def __exit__(self, exc_type, exc_val, exc_tb):
         groups_file = os.path.join(self.data['savelocation'], 'groups.json')
         remaining_data = {}
-        for elem in self.data['groups']:
+        for id_ in self.data['groups']:
             # noinspection PyTypeChecker
-            if time.time() - self.data['groups'][elem]['synctime'] < self.data['cached_duration']:
-                remaining_data[elem] = self.data['groups'][elem]
+            if time.time() - self.data['groups'][id_]['synctime'] < self.data['cached_duration']:
+                remaining_data[id_] = self.data['groups'][id_]
         with open(groups_file, 'wt') as file:
             json.dump(self.data['groups'], file)
 
         profiles_file = os.path.join(self.data['savelocation'], 'profiles.json')
         remaining_data = {}
-        for elem in self.data['profiles']:
+        for id_ in self.data['profiles']:
             # noinspection PyTypeChecker
-            if time.time() - self.data['profiles'][elem]['synctime'] < self.data['cached_duration']:
-                remaining_data[elem] = self.data['profiles'][elem]
+            if time.time() - self.data['profiles'][id_]['synctime'] < self.data['cached_duration']:
+                remaining_data[id_] = self.data['profiles'][id_]
         with open(profiles_file, 'wt') as file:
             json.dump(self.data['profiles'], file)
 
-    def connect(self, user_id: str, api_token: str) -> Account:
-        return Account(self.data, user_id, api_token)
+    def connect(self, user_id: str, api_token: str) -> Account.Account:
+        return Account.Account(self.data, user_id, api_token)
 

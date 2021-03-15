@@ -1,4 +1,4 @@
-from .Exceptions import ArgumentsNotAcceptedException, BadResponseFormatException
+import HabiticaAPI.Exceptions as Exceptions
 import requests
 import json
 import time
@@ -94,9 +94,9 @@ class SendQueue:
                         self.refresh_objects(rdict['appVersion'])
                         return rdict['data']
                     except json.JSONDecodeError as ex:
-                        raise BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)
+                        raise Exceptions.BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)
                     except KeyError as ex:
-                        raise BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)
+                        raise Exceptions.BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)
                 if r.status_code == 429:  # too many requests (http://habitica.fandom.com/wiki/Guidance_for_Comrades)
                     sek = float(r.headers['Retry-After'])
                     if self.data['print_status_info']:
@@ -106,6 +106,6 @@ class SendQueue:
                 else:
                     try:
                         rdict = r.json()
-                        raise ArgumentsNotAcceptedException(msg['callback'], msg['method'], msg['data'], rdict, r)
+                        raise Exceptions.ArgumentsNotAcceptedException(msg['callback'], msg['method'], msg['data'], rdict, r)
                     except json.decoder.JSONDecodeError as ex:
-                        raise BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)
+                        raise Exceptions.BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)
