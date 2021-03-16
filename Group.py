@@ -17,7 +17,7 @@ class Group:
         else:
             self.__group = None
 
-    def __refresh_group_members(self):
+    def __refresh_group_member_entries(self):
         if time.time() - self.__group.get('members_synctime', 0) > self.__data['cached_duration']:
             query = f'api/v3/groups/{self.__group_id}/members?includeTasks=true'
             memberlist = []
@@ -62,7 +62,7 @@ class Group:
     @property
     @__refresh
     def member(self):
-        self.__refresh_group_members()
+        self.__refresh_group_member_entries()
         member_ids = [member['id'] for member in self.__group['members']]
         return Profile.ProfileList(self.__data, self.__send, member_ids, self)
 
@@ -72,16 +72,21 @@ class Group:
     def chat(self):
         return Chat.Chat(self.__data, self.__send, self.__group_id)
 
-    def refresh_member_profiles(self):
-        query = f'api/v3/groups/{self.__group_id}/members?includeTasks=true&includeAllPublicFields=true'
-        memberlist = []
-        for i in range(0, self.__group['memberCount'], 30):
-            if memberlist:
-                memberlist += self.__send('get', f"{query}&lastId={memberlist[-1]['id']}", False)
-            memberlist = self.__send('get', query, False)
-        for member in memberlist:
-            member['synctime'] = time.time()
-            if member['id'] not in self.__data['profiles']:
-                self.__data['profiles'][member['id']] = member
-            else:
-                self.__data['profiles'][member['id']].update(member)
+    def refresh_members_profiles(self):
+        expired = 0
+        for member in self.__group['members']:
+            if time.time() - self.__data['profiles'][member['id']]['synctime'] > self.__data['cached_duration']:
+                expired += 1
+        if expired > self.__group['memberCount']/30+1:
+            query = f'api/v3/groups/{self.__group_id}/members?includeTasks=true&includeAllPublicFields=true'
+            memberlist = []
+            for i in range(0, self.__group['memberCount'], 30):
+                if memberlist:
+                    memberlist += self.__send('get', f"{query}&lastId={memberlist[-1]['id']}", False)
+                memberlist = self.__send('get', query, False)
+            for member in memberlist:
+                member['synctime'] = time.time()
+                if member['id'] not in self.__data['profiles']:
+                    self.__data['profiles'][member['id']] = member
+                else:
+                    self.__data['profiles'][member['id']].update(member)

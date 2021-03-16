@@ -27,7 +27,7 @@ class ProfileList:
 
     def __iter__(self):
         if self.__group:
-            self.__group.refresh_member_profiles()
+            self.__group.refresh_members_profiles()
         return ProfileListIter(self.__data, self.__send, self.ids)
 
     def __getitem__(self, item):
