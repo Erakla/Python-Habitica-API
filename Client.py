@@ -32,6 +32,9 @@ class Client:
         self._accs = []
 
     def __enter__(self):
+        if not os.path.exists(self.data['savelocation']):
+            os.mkdir(self.data['savelocation'])
+
         groups_file = os.path.join(self.data['savelocation'], 'groups.json')
         if os.path.exists(groups_file):
             with open(groups_file, 'rt') as file:
@@ -59,8 +62,6 @@ class Client:
             if acc.send.sender.is_alive():
                 acc.send.sender.join()
 
-        if not os.path.exists(self.data['savelocation']):
-            os.mkdir(self.data['savelocation'])
         groups_file = os.path.join(self.data['savelocation'], 'groups.json')
         remaining_data = {}
         for id_ in self.data['groups']:
