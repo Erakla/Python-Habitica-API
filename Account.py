@@ -11,12 +11,14 @@ import time
 
 class Account:
     def __init__(self, data: dict, user_id: str, api_token: str):
-        self.__data = data
-        self.user_id = user_id
-        self.api_token = api_token
+        self.__data = {'acc': self}
+        self.__data.update(data)
         x_client = "%s-%s" % (self.__data['author_uid'], self.__data['application_name'])
         self.send = SendQueue.SendQueue(self.__data, {"x-client": x_client, "x-api-user": user_id, "x-api-key": api_token})
-        self.profile = Profile.Profile(self.__data, self.send, self.user_id)
+        self.__data['send'] = self.send
+        self.user_id = user_id
+        self.api_token = api_token
+        self.profile = Profile.Profile(self.__data, self.user_id)
 
     def __delete__(self, instance):
         if self.send.sender.is_alive():
@@ -32,7 +34,7 @@ class Account:
 
     @property
     def party(self):
-        return Group.Group(self.__data, self.send, self.profile['party']['_id'])
+        return Group.Group(self.__data, self.profile['party']['_id'])
 
     # function implementations
     def challenge_clone(self, challenge_id: str, queued: bool = True, callback: object = None):

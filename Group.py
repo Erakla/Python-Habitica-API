@@ -1,4 +1,3 @@
-import HabiticaAPI.SendQueue as SendQueue
 import HabiticaAPI.Exceptions as Exceptions
 import HabiticaAPI.Profile as Profile
 import HabiticaAPI.Chat as Chat
@@ -8,9 +7,8 @@ class GroupList:
     pass
 
 class Group:
-    def __init__(self, data: dict, send: SendQueue.SendQueue, group_id: str):
+    def __init__(self, data: dict, group_id: str):
         self.__data = data
-        self.__send = send
         self.__group_id = group_id
         if group_id in data['groups']:
             self.__group = self.__data['groups'][self.__group_id]
@@ -23,21 +21,21 @@ class Group:
             memberlist = []
             for i in range(0, self.__group['memberCount'], 30):
                 if memberlist:
-                    memberlist += self.__send('get', f"{query}&lastId={memberlist[-1]['id']}", False)
-                memberlist = self.__send('get', query, False)
+                    memberlist += self.__data['send']('get', f"{query}&lastId={memberlist[-1]['id']}", False)
+                memberlist = self.__data['send']('get', query, False)
             self.__group['members'] = memberlist
             self.__group['members_synctime'] = time.time()
 
     def refresh(self):
         # if not assigned, load and assign
         if not self.__group:
-            self.__data['groups'][self.__group_id] = self.__send('get', 'api/v3/groups/%s' % self.__group_id, False)
+            self.__data['groups'][self.__group_id] = self.__data['send']('get', 'api/v3/groups/%s' % self.__group_id, False)
             self.__group = self.__data['groups'][self.__group_id]
             self.__group['synctime'] = time.time()
             self.__group['members_synctime'] = 0
         # if not topical... load and update
         elif time.time() - self.__group['synctime'] > self.__data['cached_duration']:
-            self.__group.update(self.__send('get', 'api/v3/groups/%s' % self.__group_id, False))
+            self.__group.update(self.__data['send']('get', 'api/v3/groups/%s' % self.__group_id, False))
             self.__group['synctime'] = time.time()
 
     def __refresh(func):
@@ -64,13 +62,13 @@ class Group:
     def member(self):
         self.__refresh_group_member_entries()
         member_ids = [member['id'] for member in self.__group['members']]
-        return Profile.ProfileList(self.__data, self.__send, member_ids, self)
+        return Profile.ProfileList(self.__data, member_ids, self)
 
     # noinspection PyArgumentList
     @property
     @__refresh
     def chat(self):
-        return Chat.Chat(self.__data, self.__send, self.__group_id)
+        return Chat.Chat(self.__data, self.__group_id)
 
     def refresh_members_profiles(self):
         expired = 0
@@ -82,8 +80,8 @@ class Group:
             memberlist = []
             for i in range(0, self.__group['memberCount'], 30):
                 if memberlist:
-                    memberlist += self.__send('get', f"{query}&lastId={memberlist[-1]['id']}", False)
-                memberlist = self.__send('get', query, False)
+                    memberlist += self.__data['send']('get', f"{query}&lastId={memberlist[-1]['id']}", False)
+                memberlist = self.__data['send']('get', query, False)
             for member in memberlist:
                 member['synctime'] = time.time()
                 if member['id'] not in self.__data['profiles']:

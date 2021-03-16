@@ -3,9 +3,9 @@ import HabiticaAPI.Exceptions as Exceptions
 import time
 
 class Chat:
-    def __init__(self, data: dict, send: SendQueue.SendQueue, group_id: str):
+    def __init__(self, data: dict, group_id: str):
         self.__data = data
-        self.__send = send
+        self.__data['send'] = send
         self.__group_id = group_id
         self.__group = None
         if group_id in data['groups']:
@@ -16,13 +16,13 @@ class Chat:
     def refresh(self):
         # if not assigned, load and assign
         if not self.__group:
-            self.__data['groups'][self.__group_id] = self.__send('get', 'api/v3/groups/%s' % self.__group_id, False)
+            self.__data['groups'][self.__group_id] = self.__data['send']('get', 'api/v3/groups/%s' % self.__group_id, False)
             self.__group = self.__data['groups'][self.__group_id]
             self.__group['synctime'] = time.time()
             self.__group['members_synctime'] = 0
         # if not topical... load and update
         elif time.time() - self.__group['synctime'] > self.__data['cached_duration']:
-            self.__group.update(self.__send('get', 'api/v3/groups/%s' % self.__group_id, False))
+            self.__group.update(self.__data['send']('get', 'api/v3/groups/%s' % self.__group_id, False))
             self.__group['synctime'] = time.time()
 
     def __refresh(func):
@@ -55,4 +55,4 @@ class Chat:
         update = {
             'chatSingleMsg': self.__group_id
         }
-        return self.__send('post', url % args, queued, callback, data, update)
+        return self.__data['send']('post', url % args, queued, callback, data, update)
