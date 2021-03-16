@@ -34,10 +34,6 @@ class Account:
     def party(self):
         return Group.Group(self.__data, self.send, self.profile['party']['_id'])
 
-    def save_data(self):
-        if self.send.sender.is_alive():
-            self.send.sender.join()
-
     # function implementations
     def challenge_clone(self, challenge_id: str, queued: bool = True, callback: object = None):
         return self.send('post', 'api/v3/challenges/%s/clone' % challenge_id, queued, callback)

@@ -92,6 +92,13 @@ class SendQueue:
                     self.errorlog.append((msg, r))
         else:
             while True:
+                if self.data['lazymode']:
+                    while True:
+                        elapsed = time.time() - self.lastrequesttime
+                        if elapsed < self.data['sendmsgdelay']:
+                            time.sleep(self.data['sendmsgdelay'] - elapsed)
+                        else:
+                            break
                 r = requests.request(msg['method'], url=self.base_url+msg['url'], json=msg['data'], headers=self.header)
                 if 200 <= r.status_code < 300:
                     try:
