@@ -43,7 +43,7 @@ class Profile:
         else:
             self.__profile = None
 
-    def refresh(self):
+    def refresh(self, forced: bool = False):
         if self.__user_id == self.__data['acc'].user_id:
             updateurl = 'api/v3/user'
         else:
@@ -54,11 +54,12 @@ class Profile:
             self.__data['profiles'][self.__user_id] = self.__data['send']('get', updateurl, False)
             self.__profile = self.__data['profiles'][self.__user_id]
         # if not topical... load and update
-        elif time.time() - self.__data['profiles'][self.__user_id]['synctime'] > self.__data['cached_duration']:
+        elif time.time() - self.__data['profiles'][self.__user_id]['synctime'] > self.__data['cached_duration'] or forced:
             self.__profile.update(self.__data['send']('get', updateurl, False))
         else:
-            return
+            return self
         self.__profile['synctime'] = time.time()
+        return self
 
     def __refresh(func):
         def inner(self, *args, **kwargs):
