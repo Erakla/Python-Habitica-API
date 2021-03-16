@@ -66,10 +66,24 @@ class Group:
     def member(self):
         self.__refresh_group_members()
         member_ids = [member['id'] for member in self.__group['members']]
-        return Profile.ProfileList(self.__data, self.__send, member_ids)
+        return Profile.ProfileList(self.__data, self.__send, member_ids, self)
 
     # noinspection PyArgumentList
     @property
     @__refresh
     def chat(self):
         return Chat.Chat(self.__data, self.__send, self.__group_id)
+
+    def refresh_member_profiles(self):
+        query = f'api/v3/groups/{self.__group_id}/members?includeTasks=true&includeAllPublicFields=true'
+        memberlist = []
+        for i in range(0, self.__group['memberCount'], 30):
+            if memberlist:
+                memberlist += self.__send('get', f"{query}&lastId={memberlist[-1]['id']}", False)
+            memberlist = self.__send('get', query, False)
+        for member in memberlist:
+            member['synctime'] = time.time()
+            if member['id'] not in self.__data['profiles']:
+                self.__data['profiles'][member['id']] = member
+            else:
+                self.__data['profiles'][member['id']].update(member)

@@ -19,12 +19,15 @@ class ProfileListIter:
             raise StopIteration
 
 class ProfileList:
-    def __init__(self, data: dict, send: SendQueue.SendQueue, profile_ids: list):
+    def __init__(self, data: dict, send: SendQueue.SendQueue, profile_ids: list, group: Group.Group = None):
         self.__data = data
         self.__send = send
         self.ids = profile_ids
+        self.__group = group
 
     def __iter__(self):
+        if self.__group:
+            self.__group.refresh_member_profiles()
         return ProfileListIter(self.__data, self.__send, self.ids)
 
     def __getitem__(self, item):
