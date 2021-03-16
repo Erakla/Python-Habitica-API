@@ -49,8 +49,6 @@ class Group:
             return func(self, *args, **kwargs)
         return inner
 
-    # noinspection PyArgumentList
-    @__refresh
     def __getitem__(self, item):
         return self.content[item]
 
