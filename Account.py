@@ -36,6 +36,10 @@ class Account:
     def party(self):
         return Group.Group(self.__data, self.profile['party']['_id'])
 
+    def get_profile_by_id(self, user_id):
+        return Profile.Profile(self.__data, user_id)
+
+
     # function implementations
     def challenge_clone(self, challenge_id: str, queued: bool = True, callback: object = None):
         return self.send('post', 'api/v3/challenges/%s/clone' % challenge_id, queued, callback)
