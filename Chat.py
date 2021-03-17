@@ -5,7 +5,6 @@ import time
 class Chat:
     def __init__(self, data: dict, group_id: str):
         self.__data = data
-        self.__data['send'] = send
         self.__group_id = group_id
         self.__group = None
         if group_id in data['groups']:
