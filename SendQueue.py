@@ -109,9 +109,9 @@ class SendQueue:
                             self._update(msg['update'], data)
                         return data
                     except json.JSONDecodeError as ex:
-                        raise Exceptions.BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)
+                        raise Exceptions.BadResponseFormat(r, msg['callback'], msg['method'], msg['data'], ex)
                     except KeyError as ex:
-                        raise Exceptions.BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)
+                        raise Exceptions.BadResponseFormat(r, msg['callback'], msg['method'], msg['data'], ex)
                 if r.status_code == 429:  # too many requests (http://habitica.fandom.com/wiki/Guidance_for_Comrades)
                     sek = float(r.headers['Retry-After'])
                     if self.data['print_status_info']:
@@ -121,9 +121,11 @@ class SendQueue:
                 else:
                     try:
                         rdict = r.json()
-                        raise Exceptions.ArgumentsNotAcceptedException(msg['callback'], msg['method'], msg['data'], rdict, r)
+                        if rdict.get('error', '') == 'NotAuthorized':
+                            raise Exceptions.NotAuthorized(msg['callback'], msg['method'], msg['data'], rdict, r)
+                        raise Exceptions.ArgumentsNotAccepted(msg['callback'], msg['method'], msg['data'], rdict, r)
                     except json.decoder.JSONDecodeError as ex:
-                        raise Exceptions.BadResponseFormatException(r, msg['callback'], msg['method'], msg['data'], ex)
+                        raise Exceptions.BadResponseFormat(r, msg['callback'], msg['method'], msg['data'], ex)
 
     def _update_chat_single_message(self, group_id, data: dict):
         message = data['message']

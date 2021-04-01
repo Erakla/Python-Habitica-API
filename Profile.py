@@ -54,19 +54,23 @@ class Profile:
             self.__data['profiles'][self.__user_id] = self.__data['send']('get', updateurl, False)
             self.__profile = self.__data['profiles'][self.__user_id]
         # if not topical... load and update
-        elif time.time() - self.__data['profiles'][self.__user_id]['synctime'] > self.__data['cached_duration'] or forced:
+        elif time.time() - self.__data['profiles'][self.__user_id]['synctime'] > self.__data['cached_duration'] \
+                or time.time() - self.__profile.get('authenticatedProfileSynctime', 0) > self.__data['cached_duration']  \
+                or forced:
             self.__profile.update(self.__data['send']('get', updateurl, False))
         else:
             return self
         self.__profile['synctime'] = time.time()
+        if self.__user_id == self.__data['acc'].user_id:
+            self.__profile['authenticatedProfileSynctime'] = time.time()
         return self
 
     def __refresh(func):
         def inner(self, *args, **kwargs):
             try:
                 self.refresh()
-            except Exceptions.ArgumentsNotAcceptedException as ex:
-                raise Exceptions.InvalidIDException(ex, type_='user_id', id=self.__user_id)
+            except Exceptions.ArgumentsNotAccepted as ex:
+                raise Exceptions.InvalidID(ex, type_='user_id', id=self.__user_id)
             return func(self, *args, **kwargs)
         return inner
 
@@ -82,6 +86,7 @@ class Profile:
         return self.__profile
 
     @property
+    @__refresh
     def party(self):
         return Group.Group(self.__data, self.__profile['party']['_id'])
 

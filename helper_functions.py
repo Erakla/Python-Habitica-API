@@ -5,6 +5,7 @@ def unix_to_timestamp(value: float):
     return time.strftime("%%Y-%%m-%%dT%%H:%%M:%06.3fZ" % (value % 60), time.gmtime(value))
 
 def timestamp_to_unix(timestamp: str):
-    localtimeseconds = time.mktime(time.strptime(timestamp[:-5], "%Y-%m-%dT%H:%M:%S"))
+    timezonedif = time.mktime(time.gmtime(86400)) - 86400
+    seconds = time.mktime(time.strptime(timestamp[:-5], "%Y-%m-%dT%H:%M:%S"))
     ms = float(timestamp[-5:-1])
-    return localtimeseconds + ms
+    return seconds + ms - timezonedif

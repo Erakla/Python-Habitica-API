@@ -22,7 +22,8 @@ class Group:
             for i in range(0, self.__group['memberCount'], 30):
                 if memberlist:
                     memberlist += self.__data['send']('get', f"{query}&lastId={memberlist[-1]['id']}", False)
-                memberlist = self.__data['send']('get', query, False)
+                else:
+                    memberlist = self.__data['send']('get', query, False)
             self.__group['members'] = memberlist
             self.__group['members_synctime'] = time.time()
 
@@ -41,9 +42,9 @@ class Group:
     def __refresh(func):
         def inner(self, *args, **kwargs):
             try:
-                self.refresh
-            except Exceptions.ArgumentsNotAcceptedException as ex:
-                raise Exceptions.InvalidIDException(ex, type_='group_id', id=self.__group_id)
+                self.refresh()
+            except Exceptions.ArgumentsNotAccepted as ex:
+                raise Exceptions.InvalidID(ex, type_='group_id', id=self.__group_id)
             return func(self, *args, **kwargs)
         return inner
 
@@ -59,7 +60,7 @@ class Group:
     # noinspection PyArgumentList
     @property
     @__refresh
-    def member(self):
+    def members(self):
         self.__refresh_group_member_entries()
         member_ids = [member['id'] for member in self.__group['members']]
         return Profile.ProfileList(self.__data, member_ids, self)
@@ -73,7 +74,9 @@ class Group:
     def refresh_members_profiles(self):
         expired = 0
         for member in self.__group['members']:
-            if time.time() - self.__data['profiles'][member['id']]['synctime'] > self.__data['cached_duration']:
+            if member['id'] not in self.__data['profiles']:
+                expired += 1
+            elif time.time() - self.__data['profiles'][member['id']]['synctime'] > self.__data['cached_duration']:
                 expired += 1
         if expired > self.__group['memberCount']/30+1:
             query = f'api/v3/groups/{self.__group_id}/members?includeTasks=true&includeAllPublicFields=true'

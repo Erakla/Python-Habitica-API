@@ -36,6 +36,9 @@ class Account:
     def party(self):
         return Group.Group(self.__data, self.profile['party']['_id'])
 
+    def ProfileList(self, ids: list):
+        return Profile.ProfileList(self.__data, ids)
+
     def get_profile_by_id(self, user_id):
         return Profile.Profile(self.__data, user_id)
 
@@ -500,11 +503,11 @@ class Account:
             data['priority'] = priority
         if reminders:
             data['reminders'] = reminders
-        if frequency and tasktype == 'daily' and frequency in ["daily", "weekly", "monthly", "yearly"]:
+        if tasktype == 'daily' and frequency in ["daily", "weekly", "monthly", "yearly"]:
             data['frequency'] = frequency
         if repeat and type(repeat) == dict and data.get('frequency', None) in ["weekly", "monthly"]:
             data['repeat'] = repeat
-        if every_x and data.get('frequency', False) == 'daily':
+        if every_x and data.get('frequency', False):
             data['everyX'] = every_x
         if streak:
             data['streak'] = streak

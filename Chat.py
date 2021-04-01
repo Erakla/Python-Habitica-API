@@ -28,8 +28,8 @@ class Chat:
         def inner(self, *args, **kwargs):
             try:
                 self.refresh
-            except Exceptions.ArgumentsNotAcceptedException as ex:
-                raise Exceptions.InvalidIDException(ex, type_='group_id', id=self.__group_id)
+            except Exceptions.ArgumentsNotAccepted as ex:
+                raise Exceptions.InvalidID(ex, type_='group_id', id=self.__group_id)
             return func(self, *args, **kwargs)
         return inner
 
