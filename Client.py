@@ -5,7 +5,7 @@ import time
 
 class Client:
     def __init__(self, author_uid: str, application_name: str, sendmsgdelay: int = 30, savelocation: str = "savedata",
-                 cached_duration: int = 600, print_status_info=True, language: str = 'en', lazymode: bool = False):
+                 cached_duration: int = 600, print_status_info=True, language: str = 'en', lazymode: bool = False, logfolder: str = None):
         """
 
         :param author_uid:
@@ -27,7 +27,8 @@ class Client:
             'print_status_info': print_status_info,
             'language': language,
             'savelocation': savelocation,
-            'lazymode': lazymode
+            'lazymode': lazymode,
+            'logfolder': logfolder
         }
         self._accs = []
 
