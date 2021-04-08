@@ -55,7 +55,7 @@ class Profile:
             self.__profile = self.__data['profiles'][self.__user_id]
         # if not topical... load and update
         elif time.time() - self.__data['profiles'][self.__user_id]['synctime'] > self.__data['cached_duration'] \
-                or time.time() - self.__profile.get('authenticatedProfileSynctime', 0) > self.__data['cached_duration']  \
+                or (self.__user_id == self.__data['acc'].user_id and time.time() - self.__profile.get('authenticatedProfileSynctime', 0) > self.__data['cached_duration'])  \
                 or forced:
             self.__profile.update(self.__data['send']('get', updateurl, False))
         else:
