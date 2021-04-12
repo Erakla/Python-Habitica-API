@@ -60,18 +60,21 @@ class SendQueue:
                 json.dump(self.data['objects'], file)
 
     def _log(self, logfolder, r):    # log
-        logline = f"%-4d %-5s %s" % (r.status_code, r.request.method, r.request.url)
+        logline = f"%-4d %-5s %-80s" % (r.status_code, r.request.method, r.request.url)
+        if 300 <= r.status_code < 500:
+            rdict = r.json()
+            logline += "%s: %s" % (rdict['error'], rdict['message'])
         filename = f"{time.strftime('%Y-%m-%d')}.txt"
         os.makedirs(logfolder, exist_ok=True)
         with open(os.path.join(logfolder, filename), "at", encoding='utf8') as file:
             timestr = time.strftime("%H:%M:%S.")+("%.3f" % (time.time() % 1))[2:]
-            file.write(f"{timestr} -- {data}\n")
+            file.write(f"{timestr} -- {logline}\n")
 
     def _send(self, msg):
         self.lastrequesttime = time.time()
         if msg['queued']:
             r = requests.request(msg['method'], url=self.base_url + msg['url'], json=msg['data'], headers=self.header)
-            if self.data['logfile']:
+            if self.data['logfolder']:
                 self._log(self.data['logfolder'], r)
             if 200 <= r.status_code < 300:
                 rdict = {}
@@ -110,7 +113,7 @@ class SendQueue:
                         else:
                             break
                 r = requests.request(msg['method'], url=self.base_url+msg['url'], json=msg['data'], headers=self.header)
-                if self.data['logfile']:
+                if self.data['logfolder']:
                     self._log(self.data['logfolder'], r)
                 if 200 <= r.status_code < 300:
                     try:

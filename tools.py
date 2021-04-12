@@ -61,7 +61,7 @@ def equip_for_stat(acc: Account, stat, profile, objects):
             best_items[con_gear[key]['type']] = (key, con_gear[key][stat])
     for type in best_items:
         key = best_items[type][0]
-        if key != profile['items']['gear']['equipped'][type]:
+        if key != profile['items']['gear']['equipped'].get(type, ''):
             profile['items'].update(acc.send('post', 'api/v3/user/equip/equipped/%s' % key, False))
             equiped += 1
     return equiped

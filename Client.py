@@ -30,7 +30,7 @@ class Client:
             'lazymode': lazymode,
             'logfolder': logfolder
         }
-        self._accs = []
+        self.accs = []
 
     def __enter__(self):
         if not os.path.exists(self.data['savelocation']):
@@ -82,6 +82,6 @@ class Client:
             json.dump(self.data['profiles'], file)
 
     def connect(self, user_id: str, api_token: str) -> Account.Account:
-        self._accs.append(Account.Account(self.data, user_id, api_token))
-        return self._accs[-1]
+        self.accs.append(Account.Account(self.data, user_id, api_token))
+        return self.accs[-1]
 
