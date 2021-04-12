@@ -2,6 +2,7 @@ import HabiticaAPI.Account as Account
 import json
 import os
 import time
+from threading import Thread
 
 class Client:
     def __init__(self, author_uid: str, application_name: str, sendmsgdelay: int = 30, savelocation: str = "savedata",
@@ -30,7 +31,7 @@ class Client:
             'lazymode': lazymode,
             'logfolder': logfolder
         }
-        self.accs = []
+        self.accs = {}
 
     def __enter__(self):
         if not os.path.exists(self.data['savelocation']):
@@ -81,7 +82,18 @@ class Client:
         with open(profiles_file, 'wt') as file:
             json.dump(self.data['profiles'], file)
 
-    def connect(self, user_id: str, api_token: str) -> Account.Account:
-        self.accs.append(Account.Account(self.data, user_id, api_token))
-        return self.accs[-1]
+    def _delete_temp_acc(self, uid):
+        self.accs[uid]: Account.Account
+        livetime = time.time() - self.accs[uid].send.lastrequesttime - self.data['sendmsgdelay']
+        while livetime > 0:
+            time.sleep(livetime)
+            livetime = time.time() - self.accs[uid].send.lastrequesttime - self.data['sendmsgdelay']
+        del self.accs[uid]
+
+    def connect(self, user_id: str, api_token: str, expires: bool = True) -> Account.Account:
+        if user_id not in self.accs:
+            self.accs[user_id] = Account.Account(self.data, user_id, api_token)
+            if expires:
+                Thread(target=self._delete_temp_acc, args=(user_id,)).start()
+        return self.accs[user_id]
 

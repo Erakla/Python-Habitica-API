@@ -71,8 +71,8 @@ class SendQueue:
             file.write(f"{timestr} -- {logline}\n")
 
     def _send(self, msg):
-        self.lastrequesttime = time.time()
         if msg['queued']:
+            self.lastrequesttime = time.time()
             r = requests.request(msg['method'], url=self.base_url + msg['url'], json=msg['data'], headers=self.header)
             if self.data['logfolder']:
                 self._log(self.data['logfolder'], r)
@@ -112,6 +112,7 @@ class SendQueue:
                             time.sleep(self.data['sendmsgdelay'] - elapsed)
                         else:
                             break
+                self.lastrequesttime = time.time()
                 r = requests.request(msg['method'], url=self.base_url+msg['url'], json=msg['data'], headers=self.header)
                 if self.data['logfolder']:
                     self._log(self.data['logfolder'], r)

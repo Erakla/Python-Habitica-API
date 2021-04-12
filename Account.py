@@ -10,7 +10,7 @@ import time
 
 
 class Account:
-    def __init__(self, data: dict, user_id: str, api_token: str):
+    def __init__(self, data: dict, user_id: str, api_token: str, expires: bool = False):
         self.__data = {'acc': self}
         self.__data.update(data)
         x_client = "%s-%s" % (self.__data['author_uid'], self.__data['application_name'])
@@ -19,6 +19,7 @@ class Account:
         self.user_id = user_id
         self.api_token = api_token
         self.profile = Profile.Profile(self.__data, self.user_id)
+        self.expires = expires
 
     def __delete__(self, instance):
         if self.send.sender.is_alive():
