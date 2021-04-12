@@ -131,7 +131,7 @@ class SendQueue:
                 if r.status_code == 429:  # too many requests (http://habitica.fandom.com/wiki/Guidance_for_Comrades)
                     sek = float(r.headers['Retry-After'])
                     if self.data['print_status_info']:
-                        print("have %f secs to wait..." % sek)
+                        print("have %.2f secs to wait..." % sek)
                     time.sleep(sek)
                     continue
                 else:
