@@ -60,9 +60,9 @@ class Client:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        for acc in self._accs:
-            if acc.send.sender.is_alive():
-                acc.send.sender.join()
+        for acc in self.accs.copy():
+            if self.accs[acc].send.sender.is_alive():
+                self.accs[acc].send.sender.join()
 
         groups_file = os.path.join(self.data['savelocation'], 'groups.json')
         remaining_data = {}
@@ -84,9 +84,10 @@ class Client:
 
     def _delete_temp_acc(self, uid):
         self.accs[uid]: Account.Account
+        time.sleep(self.data['sendmsgdelay'])
         livetime = time.time() - self.accs[uid].send.lastrequesttime - self.data['sendmsgdelay']
         while livetime < 0:
-            time.sleep(livetime)
+            time.sleep(livetime*-1)
             livetime = time.time() - self.accs[uid].send.lastrequesttime - self.data['sendmsgdelay']
         del self.accs[uid]
 

@@ -12,7 +12,7 @@ class SendQueue:
         self.base_url = "https://habitica.com/"
         self.header = header
         self.queue = []
-        self.sender = threading.Thread(target=self._run)
+        self.sender = None
         self.lastrequesttime = 0
         self.errorlog = []
 
@@ -27,7 +27,8 @@ class SendQueue:
         }
         if queued:
             self.queue.append(msg)
-            if not self.sender.is_alive():
+            if not self.sender or not self.sender.is_alive():
+                self.sender = threading.Thread(target=self._run)
                 self.sender.start()
         else:
             return self._send(msg)
