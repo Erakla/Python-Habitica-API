@@ -40,6 +40,7 @@ class SendQueue:
                 time.sleep(self.data['sendmsgdelay'] - elapsed)
                 continue
             self._send(self.queue.pop(0))
+        self.sender = None
 
     def refresh_objects(self, version: str):
         if not version or self.data['objects']['appVersion'] != version:
