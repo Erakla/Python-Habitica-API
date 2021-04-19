@@ -61,7 +61,7 @@ class Client:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         for acc in self.accs.copy():
-            if self.accs[acc].send.sender.is_alive():
+            if self.accs[acc].send.sender:
                 self.accs[acc].send.sender.join()
 
         groups_file = os.path.join(self.data['savelocation'], 'groups.json')

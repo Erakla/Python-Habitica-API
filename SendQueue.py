@@ -27,7 +27,7 @@ class SendQueue:
         }
         if queued:
             self.queue.append(msg)
-            if not self.sender or not self.sender.is_alive():
+            if not self.sender:
                 self.sender = threading.Thread(target=self._run)
                 self.sender.start()
         else:
