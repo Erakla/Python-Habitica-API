@@ -51,9 +51,9 @@ def determine_best_rogue_spell(acc: Account, profile, objects, user_id):
     Gold = 18 * Bonus / (Bonus + 75)
     print("Überraschungsangriff: %d Gold, %d XP" % (Gold, XP))
 
-def equip_for_stat(acc: Account, stat, profile, objects):
-    own_gear = profile['items']['gear']['owned']
-    con_gear = objects['gear']['flat']
+def equip_for_stat(acc: Account, stat):
+    own_gear = acc.profile['items']['gear']['owned']
+    con_gear = acc.objects['gear']['flat']
     best_items = {}
     equiped = 0
     for key in own_gear:
