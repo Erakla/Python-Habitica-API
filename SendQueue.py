@@ -49,13 +49,13 @@ class SendQueue:
                 self.data['objects']['appVersion'] = 'pass'
                 objects = self.__call__('get', url, False)
                 version = self.data['objects']['appVersion']
-                self.data['objects'] = objects
+                self.data['objects'].update(objects)
             elif self.data['objects']['appVersion'] == 'pass':
                 self.data['objects']['appVersion'] = version
                 return
             else:
                 self.data['objects']['appVersion'] = version
-                self.data['objects'] = self.__call__('get', url, False)
+                self.data['objects'].update(self.__call__('get', url, False))
             self.data['objects']['appVersion'] = version
             objects_file = os.path.join(self.data['savelocation'], 'objects.json')
             with open(objects_file, 'wt') as file:
